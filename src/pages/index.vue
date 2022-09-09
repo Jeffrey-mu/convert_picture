@@ -1,57 +1,84 @@
 <script setup lang="ts">
-const user = useUserStore()
-const name = $ref(user.savedName)
+const format = ref(1)
+const imgShow = ref()
+const inputimg = ref()
 
-const router = useRouter()
-const go = () => {
-  if (name)
-    router.push(`/hi/${encodeURIComponent(name)}`)
+function start() {
+  getImg((image: HTMLImageElement) => {
+    const can = imgToCanvas(image)
+    imgShow.value.setAttribute('src', canvasToImg(can))
+  })
 }
+function imgToCanvas(image: HTMLImageElement) {
+  const canvas = document.createElement('canvas')
+  canvas.width = image.width
+  canvas.height = image.height
+  canvas.getContext('2d')?.drawImage(image, 0, 0)
 
-const { t } = useI18n()
+  return canvas
+}
+// 把image 转换为 canvas对象
+
+// canvas转换为image
+function canvasToImg(canvas: HTMLCanvasElement) {
+  const array = ['image/webp', 'image/jpeg', 'image/png']
+  const src = canvas.toDataURL(array[format.value])
+  return src
+}
+// 获取图片信息
+function getImg(fn: (image: HTMLImageElement) => void) {
+  const imgFile = new FileReader()
+  try {
+    imgFile.onload = function (e: ProgressEvent<FileReader>) {
+      const image: HTMLImageElement = new Image()
+      image.src = (e?.target?.result as string)
+      image.onload = function () {
+        fn(image)
+      }
+    }
+    imgFile.readAsDataURL(inputimg.value.files[0])
+  }
+  catch (e) {
+    console.log(`请上传图片！${e}`)
+  }
+}
 </script>
 
 <template>
-  <div>
-    <div text-4xl>
-      <div i-carbon-campsite inline-block />
-    </div>
-    <p>
-      <a rel="noreferrer" href="https://github.com/antfu/vitesse" target="_blank">
-        Vitesse
-      </a>
-    </p>
-    <p>
-      <em text-sm opacity-75>{{ t('intro.desc') }}</em>
-    </p>
+  <div max-w="900px" ma>
+    <h2 text-2xl text-center>
+      图片在线webp/png/jpeg格式转换工具
+    </h2>
+    <div mt-2>
+      <span>选择图片：</span><input ref="inputimg" type="file">
+      <div mt-2>
+        <span>选择格式：</span>
+        <select v-model="format">
+          <option value="1">
+            webp格式
+          </option>
+          <option value="2">
+            jpeg格式
+          </option>
+          <option value="3">
+            png格式
+          </option>
+        </select>
+      </div>
 
-    <div py-4 />
-
-    <input
-      id="input"
-      v-model="name"
-      :placeholder="t('intro.whats-your-name')"
-      :aria-label="t('intro.whats-your-name')"
-      type="text"
-      autocomplete="false"
-      p="x4 y2"
-      w="250px"
-      text="center"
-      bg="transparent"
-      border="~ rounded gray-200 dark:gray-700"
-      outline="none active:none"
-      @keydown.enter="go"
-    >
-    <label class="hidden" for="input">{{ t('intro.whats-your-name') }}</label>
-
-    <div>
-      <button
-        btn m-3 text-sm
-        :disabled="!name"
-        @click="go"
-      >
-        {{ t('button.go') }}
+      <button mt-2 btn @click="start">
+        开始转换
       </button>
+    </div>
+    <div mt-2>
+      <p>预览：</p>
+      <img ref="imgShow" src="" alt="">
+    </div>
+    <div mt-2>
+      <h3>备注：</h3>
+      <p>1、转换后的图片请选择右键保存！</p>
+      <p>2、该工具目前仅支持转换为webp、jpeg、png的格式。如果是gif动态图片转换后不保留动态效果。</p>
+      <p>3、请使用高版本浏览器,推荐使用Chrome。</p>
     </div>
   </div>
 </template>
@@ -60,3 +87,7 @@ const { t } = useI18n()
 meta:
   layout: home
 </route>
+
+<style>
+
+</style>
