@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const format = ref(1)
+const format = ref(0)
 const imgShow = ref()
 const inputimg = ref()
 
@@ -54,13 +54,13 @@ function getImg(fn: (image: HTMLImageElement) => void) {
       <div mt-2>
         <span>选择格式：</span>
         <select v-model="format">
-          <option value="1">
+          <option :value="0">
             webp格式
           </option>
-          <option value="2">
+          <option :value="1">
             jpeg格式
           </option>
-          <option value="3">
+          <option :value="2">
             png格式
           </option>
         </select>
